@@ -24,12 +24,23 @@ def main(id):
 
 
 	for problem_num in range(1,problem_count+1):
+		## check existence phase
+
+		try:
+			f = open(f'{id}_{problem_num}.cpp','r')
+		except Exception as e:
+			print(f'Score for problem {problem_num} : 0 ({id}_{problem_num}.cpp not found)')
+			continue
+
+		f.close()
+
+
 		## compile phase
+		
 		os.system(f'g++ {id}_{problem_num}.cpp -o {problem_num} 2>{problem_num}_err.txt')
 		if os.stat(f'./{problem_num}_err.txt').st_size:
 			# compile error
-			print(f'Compile Error : {id}_{problem_num}.cpp')
-			print(f'Score for problem {problem_num} : 0')
+			print(f'Score for problem {problem_num} : 0 (Compile Error)')
 			continue
 
 		os.remove(f'./{problem_num}_err.txt')
@@ -46,7 +57,7 @@ def main(id):
 				os.remove(f'{problem_num}-{test_num}_diff.txt')
 				os.remove(f'{problem_num}-{test_num}.txt')
 			else:
-				print(f'Incorrect ans for problem {problem_num}, test case {test_num}')
+				print(f'Incorrect ans for {problem_num}-{test_num}')
 
 			test_num += 1
 
@@ -55,7 +66,7 @@ def main(id):
 
 
 if __name__ == '__main__':
-	parser = argparse.ArgumentParser(description="i'm p guy. i p guy")
+	parser = argparse.ArgumentParser(description="i'm pguy. i p guy")
 	parser.add_argument('id', type=str, help='student id')
 	args = parser.parse_args()
 	ftp_getfile(args.id)
