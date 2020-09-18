@@ -67,7 +67,10 @@ def main(id):
 			test_num += 1
 
 		print(f'Score for problem {problem_num} : {score}/{test_num - 1}')
-		os.remove(f'{problem_num}')
+		if os.name == 'posix':
+			os.remove(f'{problem_num}')
+		else:
+			os.remove(f'{problem_num}.exe')
 
 
 def diff(file1,file2,outfile):
@@ -79,8 +82,10 @@ def diff(file1,file2,outfile):
 
 	out = open(outfile,'w')
 
+
+	f2_str = f2_str[:-1] if f2_str[-1:]=='\n' else f2_str
 	if f1_str != f2_str:
-		out.writelines(['<<<<',f1_str,'>>>>',f2_str])
+		out.writelines(['<<<<\n',f1_str+'\n','>>>>\n',f2_str])
 
 	f1.close()
 	f2.close()
