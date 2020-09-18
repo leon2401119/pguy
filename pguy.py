@@ -37,19 +37,26 @@ def main(id):
 		## compile phase
 
 		os.system(f'g++ {id}_{problem_num}.cpp -o {problem_num} 2>{problem_num}_err.txt')
-		if os.stat(f'./{problem_num}_err.txt').st_size:
+		if os.stat(os.path.join('.',f'{problem_num}_err.txt')).st_size:
 			# compile error
 			print(f'Score for problem {problem_num} : 0 (Compile Error)')
 			continue
 
-		os.remove(f'./{problem_num}_err.txt')
+		os.remove(os.path.join('.',f'{problem_num}_err.txt'))
 
 		## test phase
 		score = 0
 		test_num = 1
-		while f'./{IODIR}/{problem_num}-{test_num}.in' in test_list:
-			os.system(f'./{problem_num} <./{IODIR}/{problem_num}-{test_num}.in >{problem_num}-{test_num}.txt 2>&1')
-			os.system(f'diff -B ./{IODIR}/{problem_num}-{test_num}.out {problem_num}-{test_num}.txt >{problem_num}-{test_num}_diff.txt')
+		while os.path.join('.',IODIR,f'{problem_num}-{test_num}.in') in test_list:
+
+			prefix = os.path.join('.',IODIR,f'{problem_num}')
+			prog = os.path.join('.',f'{problem_num}')
+
+			os.system(f'{prog} <{prefix}-{test_num}.in >{problem_num}-{test_num}.txt 2>&1')
+			if os.name == 'posix':
+				os.system(f'diff -B {prefix}-{test_num}.out {problem_num}-{test_num}.txt >{problem_num}-{test_num}_diff.txt')
+			else:
+				diff(f'{prefix}-{test_num}.out',f'{problem_num}-{test_num}.txt', f'{problem_num}-{test_num}_diff.txt')
 			if not os.stat(f'{problem_num}-{test_num}_diff.txt').st_size:
 				score += 1
 				os.remove(f'{problem_num}-{test_num}_diff.txt')
@@ -61,6 +68,24 @@ def main(id):
 
 		print(f'Score for problem {problem_num} : {score}/{test_num - 1}')
 		os.remove(f'{problem_num}')
+
+
+def diff(file1,file2,outfile):
+	f1 = open(file1,'r')
+	f2 = open(file2,'r')
+
+	f1_str = f1.read(-1)
+	f2_str = f2.read(-1)
+
+	out = open(outfile,'w')
+
+	if f1_str != f2_str:
+		out.writelines(['<<<<',f1_str,'>>>>',f2_str])
+
+	f1.close()
+	f2.close()
+	out.close()
+
 
 
 if __name__ == '__main__':
