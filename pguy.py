@@ -30,7 +30,7 @@ def syspause_cleaner(filename):
 
 	if mod:
 		os.remove(filename)
-		if os.name == 'posix'
+		if os.name == 'posix':
 			os.system(f'mv {filename}bak {filename}')
 		else:
 			os.system(f'move {filename}bak {filename}')
