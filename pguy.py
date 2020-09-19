@@ -11,6 +11,31 @@ def ftp_getfile(id):
 	pass
 
 
+def syspause_cleaner(filename):
+	mod = False
+
+	origin = open(filename, 'r')
+	target = open(filename + 'bak' , 'w')	# rxxxxxxxx_1.cppbak
+	line = origin.readline()
+	while(line):
+		# print(line)
+		if 'system("pause");' in line:
+			mod = True
+		else:
+			target.writelines([line])
+		line = origin.readline()
+
+	origin.close()
+	target.close()
+
+	if mod:
+		os.remove(filename)
+		os.system(f'mv {filename}bak {filename}')
+	else:
+		os.remove(f'{filename}bak')
+
+
+
 def main(id):
 	clean_up_list = glob.glob(os.path.join('.', '*.txt'))
 	for file in clean_up_list:
@@ -33,10 +58,11 @@ def main(id):
 			continue
 
 		f.close()
+		syspause_cleaner(f'{id}_{problem_num}.cpp')
 
 		## compile phase
 
-		os.system(f'g++ {id}_{problem_num}.cpp -o {problem_num} 2>{problem_num}_err.txt')
+		os.system(f'g++ {id}_{problem_num}.cpp -o {problem_num} 2>{problem_num}_err.txt 1>&2')
 		if os.stat(os.path.join('.',f'{problem_num}_err.txt')).st_size:
 			# compile error
 			print(f'Score for problem {problem_num} : 0 (Compile Error)')
