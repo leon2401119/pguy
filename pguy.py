@@ -11,6 +11,34 @@ def ftp_getfile(id):
 	pass
 
 
+def syspause_cleaner(filename):
+	mod = False
+
+	origin = open(filename, 'r')
+	target = open(filename + 'bak' , 'w')	# rxxxxxxxx_1.cppbak
+	line = origin.readline()
+	while(line):
+		# print(line)
+		if 'system("pause");' in line:
+			mod = True
+		else:
+			target.writelines([line])
+		line = origin.readline()
+
+	origin.close()
+	target.close()
+
+	if mod:
+		os.remove(filename)
+		if os.name == 'posix':
+			os.system(f'mv {filename}bak {filename}')
+		else:
+			os.system(f'move {filename}bak {filename}')
+	else:
+		os.remove(f'{filename}bak')
+
+
+
 def main(id):
 	clean_up_list = glob.glob(os.path.join('.', '*.txt'))
 	for file in clean_up_list:
@@ -33,10 +61,11 @@ def main(id):
 			continue
 
 		f.close()
+		syspause_cleaner(f'{id}_{problem_num}.cpp')
 
 		## compile phase
 
-		os.system(f'g++ {id}_{problem_num}.cpp -o {problem_num} 2>{problem_num}_err.txt')
+		os.system(f'g++ {id}_{problem_num}.cpp -o {problem_num} 2>{problem_num}_err.txt 1>&2')
 		if os.stat(os.path.join('.',f'{problem_num}_err.txt')).st_size:
 			# compile error
 			print(f'Score for problem {problem_num} : 0 (Compile Error)')
@@ -53,10 +82,11 @@ def main(id):
 			prog = os.path.join('.',f'{problem_num}')
 
 			os.system(f'{prog} <{prefix}-{test_num}.in >{problem_num}-{test_num}.txt 2>&1')
-			if os.name == 'posix':
-				os.system(f'diff -B {prefix}-{test_num}.out {problem_num}-{test_num}.txt >{problem_num}-{test_num}_diff.txt')
-			else:
-				diff(f'{prefix}-{test_num}.out',f'{problem_num}-{test_num}.txt', f'{problem_num}-{test_num}_diff.txt')
+			# if os.name == 'posix':
+			# 	os.system(f'diff -B --strip-trailing-cr {prefix}-{test_num}.out {problem_num}-{test_num}.txt >{problem_num}-{test_num}_diff.txt')
+			# else:
+			# 	diff(f'{prefix}-{test_num}.out',f'{problem_num}-{test_num}.txt', f'{problem_num}-{test_num}_diff.txt')
+			diff(f'{prefix}-{test_num}.out', f'{problem_num}-{test_num}.txt', f'{problem_num}-{test_num}_diff.txt')
 			if not os.stat(f'{problem_num}-{test_num}_diff.txt').st_size:
 				score += 1
 				os.remove(f'{problem_num}-{test_num}_diff.txt')
