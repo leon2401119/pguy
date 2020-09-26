@@ -7,46 +7,38 @@ import getpass
 import zipfile
 
 
+############ for gspread ###############
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+gss_scopes = ['https://spreadsheets.google.com/feeds']
+spreadsheet_key = '1P11Krwj7CP5zGP4Q9YPmJMGy3WDSJLLcU9SaUMNSPjg'
+########################################
+
+
+
 IODIR = 'stdio'
+SERVER_URL = 'ceiba.ntu.edu.tw'
+SERVER_PORT = 21
 
 
-def ftp_getfile(id, init):
 
-	if init:
-		try:
-			os.mkdir('.ftpinfo')
-		except Exception as e:
-			pass
-
-		server, port, hw_postfix, username, pwd = set_config()
-
-
-	else:
-		try:
-			f = open(os.path.join('.', '.ftpinfo', 'info'), 'r')
-			f.close()
-			server, port, hw_postfix, username, pwd = get_config()
-
-		except Exception as e:
-			os.mkdir('.ftpinfo')
-			server, port, hw_postfix, username, pwd = set_config()
-
+def ftp_getfile(id, username, pwd, hw_number):
 
 	ftp = FTP()
-	ftp.connect(server, int(port))
+	ftp.connect(SERVER_URL, int(SERVER_PORT))
 	ftp.login(username, pwd)
 	ftp.cwd('hw')
-	ftp.cwd('hw' + hw_postfix)
+	ftp.cwd('hw' + hw_number)
 
 	ftp_file_list = ftp.nlst()
-	id_file_list = []
 	version = 0
 	src_file = None
 	for file in ftp_file_list:
-		if id in file:
+		if id in file and 'zip' in file:
 			v = int(file[-5:-4])
 			if v > version:
 				src_file = file
+				version = v
 
 
 	if not src_file:
@@ -55,6 +47,7 @@ def ftp_getfile(id, init):
 
 	else:
 		# file found for student
+		# print(src_file)
 		with open(src_file, 'wb') as f:
 			ftp.retrbinary(f'RETR {src_file}', f.write)
 
@@ -65,32 +58,57 @@ def ftp_getfile(id, init):
 		return True
 
 
-
-
-
-
 def set_config():
+	try:
+		os.mkdir('.ftpinfo')
+	except Exception as e:
+		pass
+
 	with open(os.path.join('.', '.ftpinfo', 'info'), 'w') as f:
-		print('server url: ', end='')
-		server = input()
-		print('server port: ', end='')
-		port = input()
-		print('hw number: ', end='')
-		hw_postfix = input()
 		print('username: ', end='')
 		username = input()
 		pwd = getpass.getpass(prompt='password: ')
+		print('ceiba hw serial number for this week: ', end='')
+		hw_postfix = input()
+		print('this hw is for week _? (eg. 1 for W1) ', end='')
+		hw_week = input()
+		print('ceiba hw serial number for last week: ', end='')
+		hw_postfix_prev = input()
+		f.writelines([username + '\n', pwd + '\n', hw_postfix + '\n', hw_week + '\n', hw_postfix_prev + '\n'])
 
-		f.writelines([server + '\n', port + '\n', hw_postfix + '\n', username + '\n', pwd + '\n'])
-
-		return server, port, hw_postfix, username, pwd
+		return username, pwd, hw_postfix, hw_week, hw_postfix_prev
 
 
 def get_config():
-	with open(os.path.join('.', '.ftpinfo', 'info'), 'r') as f:
-		server, port, hw_postfix, username, pwd = f.read().splitlines()
+	username, pwd, hw_postfix, hw_week, hw_postfix_prev = None, None, None, None, None
 
-	return server, port, hw_postfix, username, pwd
+	try:
+		f = open(os.path.join('.', '.ftpinfo', 'info'), 'r')
+		username, pwd, hw_postfix, hw_week, hw_postfix_prev = f.read().splitlines()
+		f.close()
+
+	except Exception as e:
+		pass
+
+	return username, pwd, hw_postfix, hw_week, hw_postfix_prev
+
+
+
+def change_config():
+	with open(os.path.join('.', '.ftpinfo', 'info'), 'r') as f:
+		username, pwd, hw_postfix, hw_week, hw_postfix_prev = f.read().splitlines()
+
+	print(f'ceiba hw serial number for this week (prev value = {hw_postfix}): ', end='')
+	hw_postfix = input()
+	print(f'this hw is for week _? (prev value = {hw_week}): ', end='')
+	hw_week = input()
+	print(f'ceiba hw serial number for last week (prev value = {hw_postfix_prev}): ', end='')
+	hw_postfix_prev = input()
+	with open(os.path.join('.', '.ftpinfo', 'info'), 'w') as f:
+		f.writelines([username + '\n', pwd + '\n', hw_postfix + '\n', hw_week + '\n', hw_postfix_prev + '\n'])
+
+	return hw_postfix, hw_week, hw_postfix_prev
+
 
 
 def syspause_cleaner(filename):
@@ -121,7 +139,7 @@ def syspause_cleaner(filename):
 
 
 
-def main(id):
+def pguy(id, hw_week, late):
 
 	test_list = glob.glob(os.path.join('.', IODIR, '*.in'))  # 1-2.in
 
@@ -130,6 +148,9 @@ def main(id):
 		prob_no = int(os.path.basename(test).split('-')[0])
 		problem_count = prob_no if prob_no > problem_count else problem_count
 
+
+	gspread_row = [id]
+
 	for problem_num in range(1, problem_count + 1):
 		## check existence phase
 
@@ -137,6 +158,7 @@ def main(id):
 			f = open(f'{id}_{problem_num}.cpp', 'r')
 		except Exception as e:
 			print(f'Score for problem {problem_num} : 0 ({id}_{problem_num}.cpp not found)')
+			gspread_row.append('0')
 			continue
 
 		f.close()
@@ -172,6 +194,7 @@ def main(id):
 				os.remove(f'{problem_num}-{test_num}.txt')
 			else:
 				print(f'Incorrect ans for {problem_num}-{test_num}')
+				os.remove(f'{problem_num}-{test_num}.txt')
 
 			test_num += 1
 
@@ -180,6 +203,17 @@ def main(id):
 			os.remove(f'{problem_num}')
 		else:
 			os.remove(f'{problem_num}.exe')
+
+		if late:
+			score = score/2
+		gspread_row.append(str(score))
+
+
+	## gspread update
+	auth_json_path = get_credential()
+	sheet = connect_to_gspread(auth_json_path, hw_week)
+	update_score(sheet,gspread_row)
+
 
 
 def diff(file1,file2,outfile):
@@ -194,7 +228,7 @@ def diff(file1,file2,outfile):
 
 	f2_str = f2_str[:-1] if f2_str[-1:]=='\n' else f2_str
 	if f1_str != f2_str:
-		out.writelines(['<<<<\n',f1_str+'\n','>>>>\n',f2_str])
+		out.writelines(['Correct Answer :\n',f1_str+'\n','Your Answer :\n',f2_str])
 
 	f1.close()
 	f2.close()
@@ -208,12 +242,86 @@ def clean_dir():
 		os.remove(file)
 
 
+
+def main(args):
+
+	username, pwd, hw_postfix, hw_week, hw_postfix_prev = get_config()
+
+	if not username or args.init:
+		# config not found
+		username, pwd, hw_postfix, hw_week, hw_postfix_prev = set_config()
+
+		if args.init:
+			exit(0)
+
+	elif args.config:
+		hw_postfix, hw_week, hw_postfix_prev = change_config()
+
+
+	if args.id:
+		id = args.id.lower()
+		if args.boode:
+			ftp_getfile(id, username, pwd, hw_postfix_prev)
+
+		else:
+			res = ftp_getfile(id, username, pwd, hw_postfix)
+			if res and not args.file:
+				pguy(id, hw_week, args.late)
+
+
+
+def get_credential():
+	auth_json_path = glob.glob(os.path.join('.','*.json'))[0]
+	return auth_json_path
+
+
+
+def connect_to_gspread(auth_json_path, hw_week):
+	credentials = ServiceAccountCredentials.from_json_keyfile_name(auth_json_path, gss_scopes)
+	gss_client = gspread.authorize(credentials)
+	try:
+		sheet = gss_client.open_by_key(spreadsheet_key).worksheet('W' + hw_week)
+		# sheet = gss_client.open_by_key(spreadsheet_key).worksheet('工作表1')
+
+	except Exception as e:
+		sheet = gss_client.open_by_key(spreadsheet_key).add_worksheet('W' + hw_week, 1004, 26)
+
+	return sheet
+
+
+def update_score(sheet, new_row):
+	## new_row = [id,score1,score2,...]
+	info = sheet.findall(new_row[0])
+	if not len(info):
+		# no entry found, create row
+		sheet.insert_row(new_row)
+
+	elif len(info) == 1:
+		# found an old entry, update score
+		row_num = info[0].row
+		old_row = sheet.row_values(row_num)
+		for index in range(1,len(new_row)):
+			if int(old_row[index]) < int(new_row[index]):
+				sheet.update_cell(row, index + 1, new_row[index])
+
+	else:
+		# unexpected behavior
+		print(f'duplicate row for {id}')
+
+	sheet.sort((1,'asc'))
+
+
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description="i'm pguy. i p guy")
-	parser.add_argument('id', type=str, help='student id')
-	parser.add_argument('--init', '-i', action='store_true' , help='init/interactive mode for ftp server configuration')
+	parser.add_argument('id', type=str, nargs='?', help='student id')
+	parser.add_argument('--init', '-i', action='store_true', help='set/reset all configuration')
+	parser.add_argument('--config', '-c', action='store_true', help='configure which homeworks to track on ceiba')
+	parser.add_argument('--boode', '-b', action='store_true', help='download src code for previos homework')
+	parser.add_argument('--file', '-f', action='store_true', help='only download src code')
+	parser.add_argument('--late', '-l', action='store_true', help='late turn-in. 50% pt deduction')
 	args = parser.parse_args()
+	if len(sys.argv) < 2:
+		parser.print_usage()
 	clean_dir()
-	res = ftp_getfile(args.id, args.init)
-	if res:
-		main(args.id)
+	main(args)
