@@ -211,7 +211,7 @@ def pguy(id, hw_week, late):
 
 	## gspread update
 	auth_json_path = get_credential()
-	sheet = connect_to_gspread(auth_json_path, hw_week)
+	sheet = connect_to_gspread(auth_json_path, hw_week, len(gspread_row) - 1)
 	update_score(sheet,gspread_row)
 
 
@@ -276,7 +276,7 @@ def get_credential():
 
 
 
-def connect_to_gspread(auth_json_path, hw_week):
+def connect_to_gspread(auth_json_path, hw_week, problem_total):
 	credentials = ServiceAccountCredentials.from_json_keyfile_name(auth_json_path, gss_scopes)
 	gss_client = gspread.authorize(credentials)
 	try:
@@ -285,6 +285,10 @@ def connect_to_gspread(auth_json_path, hw_week):
 
 	except Exception as e:
 		sheet = gss_client.open_by_key(spreadsheet_key).add_worksheet('W' + hw_week, 1004, 26)
+		new_row = ['Student ID']
+		for i in range(problem_total):
+			new_row.append(f'Problem {i+1}')
+		sheet.insert_row(new_row)
 
 	return sheet
 
@@ -294,21 +298,21 @@ def update_score(sheet, new_row):
 	info = sheet.findall(new_row[0])
 	if not len(info):
 		# no entry found, create row
-		sheet.insert_row(new_row)
+		sheet.insert_row(new_row,2)
 
 	elif len(info) == 1:
 		# found an old entry, update score
 		row_num = info[0].row
 		old_row = sheet.row_values(row_num)
 		for index in range(1,len(new_row)):
-			if int(old_row[index]) < int(new_row[index]):
-				sheet.update_cell(row, index + 1, new_row[index])
+			if float(old_row[index]) < float(new_row[index]):
+				sheet.update_cell(row_num, index + 1, new_row[index])
 
 	else:
 		# unexpected behavior
 		print(f'duplicate row for {id}')
 
-	sheet.sort((1,'asc'))
+	sheet.sort((1,'asc'), range='A2:Z100')
 
 
 
