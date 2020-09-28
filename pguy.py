@@ -139,7 +139,7 @@ def syspause_cleaner(filename):
 
 
 
-def pguy(id, hw_week, late):
+def pguy(id, hw_week, late, update):
 
 	test_list = glob.glob(os.path.join('.', IODIR, '*.in'))  # 1-2.in
 
@@ -210,9 +210,10 @@ def pguy(id, hw_week, late):
 
 
 	## gspread update
-	auth_json_path = get_credential()
-	sheet = connect_to_gspread(auth_json_path, hw_week, len(gspread_row) - 1)
-	update_score(sheet,gspread_row)
+	if update:
+		auth_json_path = get_credential()
+		sheet = connect_to_gspread(auth_json_path, hw_week, len(gspread_row) - 1)
+		update_score(sheet,gspread_row)
 
 
 
@@ -266,7 +267,7 @@ def main(args):
 		else:
 			res = ftp_getfile(id, username, pwd, hw_postfix)
 			if res and not args.file:
-				pguy(id, hw_week, args.late)
+				pguy(id, hw_week, args.late, args.update)
 
 
 
@@ -324,6 +325,7 @@ if __name__ == '__main__':
 	parser.add_argument('--boode', '-b', action='store_true', help='download src code for previos homework')
 	parser.add_argument('--file', '-f', action='store_true', help='only download src code')
 	parser.add_argument('--late', '-l', action='store_true', help='late turn-in. 50% pt deduction')
+	parser.add_argument('--update', '-u', action='store_true', help='update google spreadsheet')
 	args = parser.parse_args()
 	if len(sys.argv) < 2:
 		parser.print_usage()
