@@ -296,6 +296,9 @@ def main(args):
 		if args.boode:
 			ftp_getfile(id, username, pwd, hw_postfix_prev)
 
+		elif args.offline:
+			pguy(id, hw_week, args.late, args.update)
+
 		else:
 			res = ftp_getfile(id, username, pwd, hw_postfix)
 			if res and not args.file:
@@ -358,8 +361,10 @@ if __name__ == '__main__':
 	parser.add_argument('--file', '-f', action='store_true', help='only download src code')
 	parser.add_argument('--late', '-l', action='store_true', help='late turn-in. 50% pt deduction')
 	parser.add_argument('--update', '-u', action='store_true', help='update google spreadsheet')
+	parser.add_argument('--offline', '-o', action='store_true', help='use local {id}_{prob_num}.cpp files for judging')
 	args = parser.parse_args()
 	if len(sys.argv) < 2:
 		parser.print_usage()
-	clean_dir()
+	if not args.offline:
+		clean_dir()
 	main(args)
