@@ -65,16 +65,48 @@ def set_config():
 		pass
 
 	with open(os.path.join('.', '.ftpinfo', 'info'), 'w') as f:
-		print('username: ', end='')
-		username = input()
-		pwd = getpass.getpass(prompt='password: ')
-		print('ceiba hw serial number for this week: ', end='')
-		hw_postfix = input()
+		while True:
+			try:
+				print('username: ', end='')
+				username = input()
+				pwd = getpass.getpass(prompt='password: ')
+				ftp = FTP()
+				ftp.connect(SERVER_URL, int(SERVER_PORT))
+				ftp.login(username, pwd)
+				break
+
+			except Exception as e:
+				print('login incorrect... please try again')
+
+		ftp.cwd('hw')
+
+		while True:
+			try:
+				print('ceiba hw serial number for this week: ', end='')
+				hw_postfix = input()
+				ftp.cwd('hw' + hw_postfix)
+				break
+
+			except Exception as e:
+				print(f'cannot find "hw{hw_postfix}" on ceiba. try again')
+
 		print('this hw is for week _? (eg. 1 for W1) ', end='')
 		hw_week = input()
-		print('ceiba hw serial number for last week: ', end='')
-		hw_postfix_prev = input()
+
+		ftp.cwd('..')
+
+		while True:
+			try:
+				print('ceiba hw serial number for last week: ', end='')
+				hw_postfix_prev = input()
+				ftp.cwd('hw' + hw_postfix_prev)
+				break
+
+			except Exception as e:
+				print(f'cannot find "hw{hw_postfix}" on ceiba. try again')
+
 		f.writelines([username + '\n', pwd + '\n', hw_postfix + '\n', hw_week + '\n', hw_postfix_prev + '\n'])
+
 
 		return username, pwd, hw_postfix, hw_week, hw_postfix_prev
 
