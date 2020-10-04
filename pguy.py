@@ -259,9 +259,26 @@ def diff(file1,file2,outfile):
 	out = open(outfile,'w')
 
 
-	f2_str = f2_str[:-1] if f2_str[-1:]=='\n' else f2_str
-	if f1_str != f2_str:
+	f1_trail_cr = 0
+	f2_trail_cr = 0
+
+	while(f1_str[-1-f1_trail_cr] == '\n'):
+		f1_trail_cr = f1_trail_cr + 1
+
+	while(f2_str[-1-f2_trail_cr] == '\n'):
+		f2_trail_cr = f2_trail_cr + 1
+
+	print(f1_trail_cr)
+	print(f2_trail_cr)
+
+
+	f1_trail_cr = -f1_trail_cr if f1_trail_cr else None
+	f2_trail_cr = -f2_trail_cr if f2_trail_cr else None
+
+
+	if f1_str[:f1_trail_cr] != f2_str[:f2_trail_cr]:
 		out.writelines(['Correct Answer :\n',f1_str+'\n','Your Answer :\n',f2_str])
+
 
 	f1.close()
 	f2.close()
