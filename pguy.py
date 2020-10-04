@@ -268,8 +268,8 @@ def diff(file1,file2,outfile):
 	while(f2_str[-1-f2_trail_cr] == '\n'):
 		f2_trail_cr = f2_trail_cr + 1
 
-	print(f1_trail_cr)
-	print(f2_trail_cr)
+	# print(f1_trail_cr)
+	# print(f2_trail_cr)
 
 
 	f1_trail_cr = -f1_trail_cr if f1_trail_cr else None
