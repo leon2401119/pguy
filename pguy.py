@@ -35,7 +35,13 @@ def ftp_getfile(id, username, pwd, hw_number):
 	src_file = None
 	for file in ftp_file_list:
 		if id in file and 'zip' in file:
-			v = int(file[-5:-4])
+
+			v = 0
+			i = -5  # hwxxxxxx_id_hash_version.zip
+			while file[i] != '_':
+				v = v * 10 + int(file[i])
+				i -= 1
+
 			if v > version:
 				src_file = file
 				version = v
