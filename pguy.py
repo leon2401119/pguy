@@ -7,18 +7,32 @@ import getpass
 import zipfile
 
 
-############ for gspread ###############
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-gss_scopes = ['https://spreadsheets.google.com/feeds']
-spreadsheet_key = '1P11Krwj7CP5zGP4Q9YPmJMGy3WDSJLLcU9SaUMNSPjg'
-########################################
-
-
 
 IODIR = 'stdio'
 SERVER_URL = 'ceiba.ntu.edu.tw'
 SERVER_PORT = 21
+GSPREAD_READY = True
+GSPREAD_DEPENDECIES = []
+
+
+############ for gspread ###############
+try:
+	import gspread
+except Exception as e:
+	GSPREAD_READY = False
+	GSPREAD_DEPENDENCIES.append('gspread')
+	
+try:
+	from oauth2client.service_account import ServiceAccountCredentials
+except Exception as e:
+	GSPREAD_READY = False
+	GSPREAD_DEPENDENCIES.append('oauth2client.service_account')
+	
+	
+gss_scopes = ['https://spreadsheets.google.com/feeds']
+spreadsheet_key = '1P11Krwj7CP5zGP4Q9YPmJMGy3WDSJLLcU9SaUMNSPjg'
+########################################
+
 
 
 
@@ -39,7 +53,7 @@ def ftp_getfile(id, username, pwd, hw_number):
 			v = 0
 			i = -5  # hwxxxxxx_id_hash_version.zip
 			while file[i] != '_':
-				v = v * 10 + int(file[i])
+				v = v + int(file[i])*pow(10,-5-i)
 				i -= 1
 
 			if v > version:
@@ -249,10 +263,14 @@ def pguy(id, hw_week, late, update):
 
 	## gspread update
 	if update:
-		auth_json_path = get_credential()
-		sheet = connect_to_gspread(auth_json_path, hw_week, len(gspread_row) - 1)
-		update_score(sheet,gspread_row)
-
+		if GSPREAD_READY:
+			auth_json_path = get_credential()
+			sheet = connect_to_gspread(auth_json_path, hw_week, len(gspread_row) - 1)
+			update_score(sheet,gspread_row)
+		else:
+			print('unmateched gspread module dependecies : ',end='')
+			for item in GSPREAD_DEPENDENCIES:
+				print(item,end=' ')
 
 
 def diff(file1,file2,outfile):
