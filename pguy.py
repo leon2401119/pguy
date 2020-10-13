@@ -12,7 +12,7 @@ IODIR = 'stdio'
 SERVER_URL = 'ceiba.ntu.edu.tw'
 SERVER_PORT = 21
 GSPREAD_READY = True
-GSPREAD_DEPENDECIES = []
+GSPREAD_DEPENDENCIES = []
 
 
 ############ for gspread ###############
@@ -272,12 +272,17 @@ def pguy(id, hw_week, late, update):
 	if update:
 		if GSPREAD_READY:
 			auth_json_path = get_credential()
-			sheet = connect_to_gspread(auth_json_path, hw_week, len(gspread_row) - 1)
-			update_score(sheet,gspread_row)
+			if auth_json_path:
+				sheet = connect_to_gspread(auth_json_path, hw_week, len(gspread_row) - 1)
+				update_score(sheet,gspread_row)
+			else:
+				print('unable to get correct JSON file for credential authentication')
 		else:
-			print('unmateched gspread module dependecies : ',end='')
+			print('google spreadsheet API failure. plz install the dependencies and try again')
+			print(f'{len(GSPREAD_DEPENDENCIES)} unmateched gspread module dependecies : ')
 			for item in GSPREAD_DEPENDENCIES:
-				print(item,end=' ')
+				print(item)
+
 
 
 def diff(file1,file2,outfile):
@@ -362,7 +367,15 @@ def main(args):
 
 
 def get_credential():
-	auth_json_path = glob.glob(os.path.join('.','*.json'))[0]
+	json_list = glob.glob(os.path.join('.','*.json'))
+	if len(json_list) == 1:
+		auth_json_path = glob.glob(os.path.join('.','*.json'))[0]
+	elif len(json_list):
+		print('no credential JSON file found')
+		auth_json_path = None
+	else:
+		print('more than one JSON file found')
+		auth_json_path = None
 	return auth_json_path
 
 
