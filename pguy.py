@@ -166,13 +166,20 @@ def change_config():
 def syspause_cleaner(filename):
 	mod = False
 
-	origin = open(filename, 'r')
-	target = open(filename + 'bak' , 'w')	# rxxxxxxxx_1.cppbak
-	line = origin.readline()
+	origin = open(filename, 'r', encoding='ascii')
+
+	try:
+		line = origin.readline()
+	except Exception as e:
+		return
+
+	target = open(filename + 'bak', 'w')  # rxxxxxxxx_1.cppbak
+
 	while(line):
 		# print(line)
-		if 'system("pause");' in line:
-			mod = True
+		if 'system' in line:
+			if 'pause' in line or 'Pause' in line:
+				mod = True
 		else:
 			target.writelines([line])
 		line = origin.readline()
@@ -274,23 +281,30 @@ def pguy(id, hw_week, late, update):
 
 
 def diff(file1,file2,outfile):
-	f1 = open(file1,'r')
-	f2 = open(file2,'r')
+
+	f1 = open(file1,'r', encoding='ascii')
+	f2 = open(file2,'r', encoding='ascii')
+	out = open(outfile, 'w')
+
 
 	f1_str = f1.read(-1)
-	f2_str = f2.read(-1)
-
-	out = open(outfile,'w')
+	try:
+		f2_str = f2.read(-1)
+	except Exception as e:
+		out.writelines(['the answer is not ASCII encoded'])
+		out.close()
+		return
 
 
 	f1_trail_cr = 0
 	f2_trail_cr = 0
 
-	while(f1_str[-1-f1_trail_cr] == '\n'):
-		f1_trail_cr = f1_trail_cr + 1
-
-	while(f2_str[-1-f2_trail_cr] == '\n'):
-		f2_trail_cr = f2_trail_cr + 1
+	if len(f1_str):
+		while(f1_str[-1-f1_trail_cr] == '\n'):
+			f1_trail_cr = f1_trail_cr + 1
+	if len(f2_str):
+		while(f2_str[-1-f2_trail_cr] == '\n'):
+			f2_trail_cr = f2_trail_cr + 1
 
 	# print(f1_trail_cr)
 	# print(f2_trail_cr)
