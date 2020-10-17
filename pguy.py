@@ -5,14 +5,16 @@ import argparse
 from ftplib import FTP
 import getpass
 import zipfile
+import subprocess
 
 
-
+TIMEOUT = 5	# for countering infinite loop executables
 IODIR = 'stdio'
 SERVER_URL = 'ceiba.ntu.edu.tw'
 SERVER_PORT = 21
 GSPREAD_READY = True
 GSPREAD_DEPENDENCIES = []
+
 
 
 ############ for gspread ###############
@@ -132,7 +134,7 @@ def set_config():
 				break
 
 			except Exception as e:
-				print(f'cannot find testcase for "hw{hw_postfix}" on ceiba. try again')
+				print(f'cannot find "hw{hw_postfix_prev}" on ceiba. try again')
 
 		f.writelines([username + '\n', pwd + '\n', hw_postfix + '\n', hw_week + '\n', hw_postfix_prev + '\n'])
 
@@ -184,6 +186,7 @@ def change_config():
 
 	ftp.cwd('..')
 	ftp.cwd('..')
+	ftp.cwd('hw')
 
 
 	print(f'this hw is for week _? (prev value = {hw_week}): ', end='')
@@ -197,7 +200,7 @@ def change_config():
 			break
 
 		except Exception as e:
-			print(f'cannot find testcase for "hw{hw_postfix}" on ceiba. try again')
+			print(f'cannot find testcase for "hw{hw_postfix_prev}" on ceiba. try again')
 
 
 	with open(os.path.join('.', '.ftpinfo', 'info'), 'w') as f:
@@ -296,7 +299,25 @@ def pguy(id, hw_week, late, update):
 			prefix = os.path.join('.',IODIR,f'{problem_num}')
 			prog = os.path.join('.',f'{problem_num}')
 
-			os.system(f'{prog} <{prefix}-{test_num}.in >{problem_num}-{test_num}.txt 2>&1')
+			# os.system(f'{prog} <{prefix}-{test_num}.in >{problem_num}-{test_num}.txt 2>&1')
+			with open(f'{prefix}-{test_num}.in', 'r') as f:
+				ff = open(f'{problem_num}-{test_num}.txt', 'w')
+				to_write = ''
+				try:
+					output = subprocess.run([prog], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=TIMEOUT)
+				except Exception as e:
+					to_write = 'infinite loop detected...'
+
+				if not len(to_write):
+					try:
+						to_write = output.stdout.decode('ascii')
+					except Exception as e:
+						to_write = 'the answer is not ASCII encoded'
+
+				ff.write(to_write)
+				ff.close()
+
+
 			# if os.name == 'posix':
 			# 	os.system(f'diff -B {prefix}-{test_num}.out {problem_num}-{test_num}.txt >{problem_num}-{test_num}_diff.txt')
 			# else:
@@ -393,6 +414,9 @@ def clean_dir():
 
 def main(args):
 
+	if args.offline:
+		clean_dir()
+
 	username, pwd, hw_postfix, hw_week, hw_postfix_prev = get_config()
 
 	if not username or args.init:
@@ -488,6 +512,4 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 	if len(sys.argv) < 2:
 		parser.print_usage()
-	if not args.offline:
-		clean_dir()
 	main(args)
