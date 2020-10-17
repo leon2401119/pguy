@@ -98,22 +98,31 @@ def set_config():
 			except Exception as e:
 				print('login incorrect... please try again')
 
-		ftp.cwd('hw')
+		ftp.cwd('stdio')
 
 		while True:
 			try:
 				print('ceiba hw serial number for this week: ', end='')
 				hw_postfix = input()
 				ftp.cwd('hw' + hw_postfix)
+				testcase_zip = ftp.nlst()[0]
+				with open(testcase_zip, 'wb') as file:
+					ftp.retrbinary(f'RETR {testcase_zip}', file.write)
+				ensure_iodir_exist()
+				with zipfile.ZipFile(testcase_zip, 'r') as zip_ref:
+					zip_ref.extractall(os.path.join('.',IODIR))
+				os.remove(testcase_zip)
 				break
 
 			except Exception as e:
-				print(f'cannot find "hw{hw_postfix}" on ceiba. try again')
+				print(f'cannot find testcase for "hw{hw_postfix}" on ceiba. try again')
 
 		print('this hw is for week _? (eg. 1 for W1) ', end='')
 		hw_week = input()
 
 		ftp.cwd('..')
+		ftp.cwd('..')
+		ftp.cwd('hw')
 
 		while True:
 			try:
@@ -123,7 +132,7 @@ def set_config():
 				break
 
 			except Exception as e:
-				print(f'cannot find "hw{hw_postfix}" on ceiba. try again')
+				print(f'cannot find testcase for "hw{hw_postfix}" on ceiba. try again')
 
 		f.writelines([username + '\n', pwd + '\n', hw_postfix + '\n', hw_week + '\n', hw_postfix_prev + '\n'])
 
@@ -150,12 +159,47 @@ def change_config():
 	with open(os.path.join('.', '.ftpinfo', 'info'), 'r') as f:
 		username, pwd, hw_postfix, hw_week, hw_postfix_prev = f.read().splitlines()
 
-	print(f'ceiba hw serial number for this week (prev value = {hw_postfix}): ', end='')
-	hw_postfix = input()
+	ftp = FTP()
+	ftp.connect(SERVER_URL, int(SERVER_PORT))
+	ftp.login(username, pwd)
+	ftp.cwd('stdio')
+
+	while True:
+		try:
+			print(f'ceiba hw serial number for this week (prev value = {hw_postfix}): ', end='')
+			hw_postfix = input()
+			ftp.cwd('hw' + hw_postfix)
+			testcase_zip = ftp.nlst()[0]
+			with open(testcase_zip, 'wb') as file:
+				ftp.retrbinary(f'RETR {testcase_zip}', file.write)
+			ensure_iodir_exist()
+			with zipfile.ZipFile(testcase_zip, 'r') as zip_ref:
+				zip_ref.extractall(os.path.join('.', IODIR))
+			os.remove(testcase_zip)
+			break
+
+		except Exception as e:
+			print(f'cannot find testcase for "hw{hw_postfix}" on ceiba. try again')
+
+
+	ftp.cwd('..')
+	ftp.cwd('..')
+
+
 	print(f'this hw is for week _? (prev value = {hw_week}): ', end='')
 	hw_week = input()
-	print(f'ceiba hw serial number for last week (prev value = {hw_postfix_prev}): ', end='')
-	hw_postfix_prev = input()
+
+	while True:
+		try:
+			print(f'ceiba hw serial number for last week (prev value = {hw_postfix_prev}): ', end='')
+			hw_postfix_prev = input()
+			ftp.cwd('hw' + hw_postfix_prev)
+			break
+
+		except Exception as e:
+			print(f'cannot find testcase for "hw{hw_postfix}" on ceiba. try again')
+
+
 	with open(os.path.join('.', '.ftpinfo', 'info'), 'w') as f:
 		f.writelines([username + '\n', pwd + '\n', hw_postfix + '\n', hw_week + '\n', hw_postfix_prev + '\n'])
 
@@ -196,6 +240,17 @@ def syspause_cleaner(filename):
 	else:
 		os.remove(f'{filename}bak')
 
+
+def ensure_iodir_exist():
+	try:
+		os.mkdir(IODIR)
+	except Exception as e:
+		pass
+
+	oldtest_list = glob.glob(os.path.join('.',IODIR,'*.in'))
+	oldtest_list.extend(glob.glob(os.path.join('.',IODIR,'*.out')))
+	for file in oldtest_list:
+		os.remove(file)
 
 
 def pguy(id, hw_week, late, update):
