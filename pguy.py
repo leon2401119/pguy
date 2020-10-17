@@ -414,7 +414,7 @@ def clean_dir():
 
 def main(args):
 
-	if args.offline:
+	if not args.offline:
 		clean_dir()
 
 	username, pwd, hw_postfix, hw_week, hw_postfix_prev = get_config()
