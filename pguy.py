@@ -213,7 +213,7 @@ def change_config():
 def syspause_cleaner(filename):
 	mod = False
 
-	origin = open(filename, 'r', encoding='ascii')
+	origin = open(filename, 'r', encoding='utf-8')
 
 	try:
 		line = origin.readline()
@@ -224,9 +224,8 @@ def syspause_cleaner(filename):
 
 	while(line):
 		# print(line)
-		if 'system' in line:
-			if 'pause' in line or 'Pause' in line:
-				mod = True
+		if 'system' in line and ('pause' in line or 'Pause' in line):
+			mod = True
 		else:
 			target.writelines([line])
 		line = origin.readline()
