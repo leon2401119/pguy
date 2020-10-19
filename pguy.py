@@ -270,15 +270,19 @@ def pguy(id, hw_week, late, update):
 	for problem_num in range(1, problem_count + 1):
 		## check existence phase
 
-		try:
-			f = open(f'{id}_{problem_num}.cpp', 'r')
-		except Exception as e:
-			print(f'Score for problem {problem_num} : 0 ({id}_{problem_num}.cpp not found)')
-			gspread_row.append('0')
-			continue
+		# try:
+		# 	f = open(f'{id}_{problem_num}.cpp', 'r')
+		# except Exception as e:
+		# 	print(f'Score for problem {problem_num} : 0 ({id}_{problem_num}.cpp not found)')
+		# 	gspread_row.append('0')
+		# 	continue
+		#
+		# f.close()
+		# syspause_cleaner(f'{id}_{problem_num}.cpp')
 
-		f.close()
-		syspause_cleaner(f'{id}_{problem_num}.cpp')
+		file_path = os.path.join('.',IODIR,f'{problem_num}.cpp')
+		os.system(f'cp {file_path} {id}_{problem_num}.cpp')
+
 
 		## compile phase
 
@@ -366,36 +370,40 @@ def diff(file1,file2,outfile):
 	f2 = open(file2,'r', encoding='ascii')
 	out = open(outfile, 'w')
 
+	f1_out = ''
+	f2_out = ''
+	correctness = True
+	f1_buff = f1.readline()
+	while f1_buff != '' and f1_buff != '\n':
+		f2_buff = f2.readline()
 
-	f1_str = f1.read(-1)
-	try:
-		f2_str = f2.read(-1)
-	except Exception as e:
-		out.writelines(['the answer is not ASCII encoded'])
-		out.close()
-		return
+		f1_out += f1_buff
+		f2_out += f2_buff
+
+		if f2_buff == '':
+			correctness = False
+			f1_buff = f1.readline()
+			continue
+
+		while f2_buff[-1] == ' ' or f2_buff[-1] == '\n':
+			f2_buff = f2_buff[:-1]
+
+		if f1_buff != f2_buff:
+			correctness = False
+
+		f1_buff = f1.readline()
+
+	f2_buff = f2.readline()
+	while f2_buff != '':
+		if f2_buff != '\n':
+			correctness = False
+
+		f2_out += f2_buff
+		f2_buff = f2.readline()
 
 
-	f1_trail_cr = 0
-	f2_trail_cr = 0
-
-	if len(f1_str):
-		while(f1_str[-1-f1_trail_cr] == '\n'):
-			f1_trail_cr = f1_trail_cr + 1
-	if len(f2_str):
-		while(f2_str[-1-f2_trail_cr] == '\n'):
-			f2_trail_cr = f2_trail_cr + 1
-
-	# print(f1_trail_cr)
-	# print(f2_trail_cr)
-
-
-	f1_trail_cr = -f1_trail_cr if f1_trail_cr else None
-	f2_trail_cr = -f2_trail_cr if f2_trail_cr else None
-
-
-	if f1_str[:f1_trail_cr] != f2_str[:f2_trail_cr]:
-		out.writelines(['Correct Answer :\n',f1_str+'\n','Your Answer :\n',f2_str])
+	if not correctness:
+		out.writelines(['Correct Answer :\n',f1_out+'\n','Your Answer :\n',f2_out])
 
 
 	f1.close()
