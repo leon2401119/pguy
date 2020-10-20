@@ -280,7 +280,7 @@ def pguy(id, hw_week, late, update):
 		# f.close()
 		# syspause_cleaner(f'{id}_{problem_num}.cpp')
 
-		if i>2:
+		if problem_num>2:
 			file_path = os.path.join('.',IODIR,f'{problem_num}.cpp')
 			os.system(f'cp {file_path} {id}_{problem_num}.cpp')
 
