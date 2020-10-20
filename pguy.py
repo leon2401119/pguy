@@ -363,7 +363,6 @@ def pguy(id, hw_week, late, update):
 				print(item)
 
 
-
 def diff(file1,file2,outfile):
 
 	f1 = open(file1,'r', encoding='ascii')
@@ -385,7 +384,9 @@ def diff(file1,file2,outfile):
 			f1_buff = f1.readline()
 			continue
 
-		while f2_buff[-1] == ' ' or f2_buff[-1] == '\n':
+		while len(f1_buff) and (f1_buff[-1] == ' ' or f1_buff[-1] == '\n'):
+			f1_buff = f1_buff[:-1]
+		while len(f2_buff) and (f2_buff[-1] == ' ' or f2_buff[-1] == '\n'):
 			f2_buff = f2_buff[:-1]
 
 		if f1_buff != f2_buff:
@@ -393,13 +394,19 @@ def diff(file1,file2,outfile):
 
 		f1_buff = f1.readline()
 
-	f2_buff = f2.readline()
-	while f2_buff != '':
-		if f2_buff != '\n':
-			correctness = False
+
+	while True:
+		f2_buff = f2.readline()
+		if f2_buff == '':
+			break
 
 		f2_out += f2_buff
-		f2_buff = f2.readline()
+		while len(f2_buff) and (f2_buff[-1] == ' ' or f2_buff[-1] == '\n'):
+			f2_buff = f2_buff[:-1]
+
+		if f2_buff != '':
+			correctness = False
+
 
 
 	if not correctness:
