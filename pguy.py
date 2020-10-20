@@ -270,17 +270,18 @@ def pguy(id, hw_week, late, update):
 	for problem_num in range(1, problem_count + 1):
 		## check existence phase
 
-		# try:
-		# 	f = open(f'{id}_{problem_num}.cpp', 'r')
-		# except Exception as e:
-		# 	print(f'Score for problem {problem_num} : 0 ({id}_{problem_num}.cpp not found)')
-		# 	gspread_row.append('0')
-		# 	continue
-		#
-		# f.close()
-		# syspause_cleaner(f'{id}_{problem_num}.cpp')
+		if problem_num <= 2:
+			try:
+				f = open(f'{id}_{problem_num}.cpp', 'r')
+			except Exception as e:
+				print(f'Score for problem {problem_num} : 0 ({id}_{problem_num}.cpp not found)')
+				gspread_row.append('0')
+				continue
 
-		if problem_num>2:
+			f.close()
+			syspause_cleaner(f'{id}_{problem_num}.cpp')
+
+		else:
 			file_path = os.path.join('.',IODIR,f'{problem_num}.cpp')
 			os.system(f'cp {file_path} {id}_{problem_num}.cpp')
 
