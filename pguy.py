@@ -8,7 +8,7 @@ import zipfile
 import subprocess
 
 
-TIMEOUT = 5     # for countering infinite loop executables
+TIMEOUT = 20     # for countering infinite loop executables
 IODIR = 'stdio'
 SERVER_URL = 'ceiba.ntu.edu.tw'
 SERVER_PORT = 21
