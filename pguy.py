@@ -409,22 +409,49 @@ def diff(file1, file2, outfile):
 
 def diff_8queen(file1, file2, outfile):
     board_list = []
+    # with open(file1,'r') as groundtruth:
+    #     board = []
+    #     while True:
+    #         line = groundtruth.readline()
+    #
+    #         if line == '\n':
+    #             board_list.append(board)
+    #             board = []
+    #
+    #         elif not len(line):
+    #             board_list.append(board)
+    #             break
+    #
+    #         else:
+    #             row, col = line[:-1].split(" ")
+    #             board.append([int(row),int(col)])
+
+
     with open(file1,'r') as groundtruth:
         board = []
+        row = 0
+
         while True:
             line = groundtruth.readline()
 
             if line == '\n':
                 board_list.append(board)
+                row = 0
                 board = []
 
             elif not len(line):
-                board_list.append(board)
                 break
 
             else:
-                row, col = line[:-1].split(" ")
-                board.append([int(row),int(col)])
+                pos = 0
+                while True:
+                    pos = line.find('Q',pos)
+                    if pos == -1:
+                        break
+                    board.append([row,pos])
+                    pos += 1
+
+                row += 1
 
 
     ans_board_list = []
