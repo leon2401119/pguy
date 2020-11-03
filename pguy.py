@@ -253,10 +253,14 @@ def pguy(id, hw_week, late, update):
 
     gspread_row = [id]
 
+
+    prog_arg = {'2':[],'3':[]}
+
+
     for problem_num in range(1, problem_count + 1):
         ## check existence phase
 
-        if problem_num <= 2:
+        if problem_num == 1 or problem_num == 4:
             try:
                 f = open(f'{id}_{problem_num}.cpp', 'r')
             except Exception as e:
@@ -294,8 +298,14 @@ def pguy(id, hw_week, late, update):
                 ff = open(f'{problem_num}-{test_num}.txt', 'w')
                 to_write = ''
                 try:
-                    output = subprocess.run([prog], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+
+                    if problem_num in [2,3]:
+                        output = subprocess.run([prog,prog_arg[problem_num][test_num-1][0],prog_arg[problem_num][test_num-1][1]], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                timeout=TIMEOUT)
+                    else:
+                        output = subprocess.run([prog], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             timeout=TIMEOUT)
+
                 except Exception as e:
                     to_write = 'infinite loop detected...'
 
@@ -518,6 +528,7 @@ def header_file_check(header_file_name):
 def clean_dir():
     clean_up_list = glob.glob(os.path.join('.', '*.txt'))
     clean_up_list.extend(glob.glob(os.path.join('.', '*.cpp')))
+    clean_up_list.extend(glob.glob(os.path.join('.', '*.h')))
     for file in clean_up_list:
         os.remove(file)
 
