@@ -239,6 +239,7 @@ def ensure_iodir_exist():
 
     oldtest_list = glob.glob(os.path.join('.', IODIR, '*.in'))
     oldtest_list.extend(glob.glob(os.path.join('.', IODIR, '*.out')))
+    oldtest_list.extend(glob.glob(os.path.join('.',IODIR, '*.cpp')))
     for file in oldtest_list:
         os.remove(file)
 
@@ -530,9 +531,13 @@ def diff_8queen(file1, file2, outfile):
 
 def header_file_check(header_file_name):
     with open(header_file_name, 'r') as header:
-        header_str = header.read()
-        if '{' in header_str and '}' in header_str:
-            return False
+        while True:
+            header_str = header.readline()
+            if not len(header_str):
+                break
+            if '{' in header_str and '}' in header_str and '//' not in header_str:
+                return False
+
     return True
 
 
