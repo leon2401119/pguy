@@ -7,7 +7,7 @@ import getpass
 import zipfile
 import subprocess
 
-TIMEOUT = 5  # for countering infinite loop executables
+TIMEOUT = 20  # for countering infinite loop executables
 IODIR = 'stdio'
 SERVER_URL = 'ceiba.ntu.edu.tw'
 SERVER_PORT = 21
@@ -254,13 +254,23 @@ def pguy(id, hw_week, late, update):
     gspread_row = [id]
 
 
-    prog_arg = {'2':[],'3':[]}
+    prog_arg = {
+                2:[(1,100),(2,1000),(3,10000),(4,100000),(5,500000)],
+                3:[(1,100),(2,1000),(3,10000),(4,100000),(5,500000)],
+                4:[(1,100),(2,1000),(3,10000),(4,100000),(5,500000)]
+                }
+    header = {1:[],
+              2:['basic.h','quickSort.h'],
+              3:['basic.h','mergeSort.h'],
+              4:['basic.h','mergeInplace.h'],
+              5:[]
+              }
 
 
     for problem_num in range(1, problem_count + 1):
         ## check existence phase
 
-        if problem_num == 1 or problem_num == 4:
+        if problem_num in [1,5]:
             try:
                 f = open(f'{id}_{problem_num}.cpp', 'r')
             except Exception as e:
@@ -277,7 +287,7 @@ def pguy(id, hw_week, late, update):
 
         ## compile phase
 
-        os.system(f'g++ {id}_{problem_num}.cpp -o {problem_num} 2>{problem_num}_err.txt')
+        os.system(f'g++ {id}_{problem_num}.cpp -w -o {problem_num} 2>{problem_num}_err.txt')
         if os.stat(os.path.join('.', f'{problem_num}_err.txt')).st_size:
             # compile error
             print(f'Score for problem {problem_num} : 0 (Compile Error)')
@@ -299,14 +309,15 @@ def pguy(id, hw_week, late, update):
                 to_write = ''
                 try:
 
-                    if problem_num in [2,3]:
-                        output = subprocess.run([prog,prog_arg[problem_num][test_num-1][0],prog_arg[problem_num][test_num-1][1]], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                    if problem_num in [2,3,4]:
+                        output = subprocess.run([prog,str(prog_arg[problem_num][test_num-1][0]),str(prog_arg[problem_num][test_num-1][1])], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 timeout=TIMEOUT)
                     else:
                         output = subprocess.run([prog], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             timeout=TIMEOUT)
 
                 except Exception as e:
+                    print(e)
                     to_write = 'infinite loop detected...'
 
                 if not len(to_write):
@@ -316,15 +327,15 @@ def pguy(id, hw_week, late, update):
                         to_write = 'the answer is not ASCII encoded'
 
 
-                header_file_name = '???'
-                if header_file_check(header_file_name):
-                    to_write = 'header file(s) contain implementation'
+                for hd in header[problem_num]:
+                    if not header_file_check(hd):
+                        to_write = 'header file(s) contain implementation'
 
                 ff.write(to_write)
                 ff.close()
 
 
-            if problem_num != 3:
+            if problem_num != 5:
                 diff(f'{prefix}-{test_num}.out', f'{problem_num}-{test_num}.txt', f'{problem_num}-{test_num}_diff.txt')
 
             else:
@@ -522,7 +533,7 @@ def header_file_check(header_file_name):
         header_str = header.read()
         if '{' in header_str and '}' in header_str:
             return False
-        return True
+    return True
 
 
 def clean_dir():
