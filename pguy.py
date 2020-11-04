@@ -480,11 +480,18 @@ def diff_8queen(file1, file2, outfile):
     with open(file2,'r') as ans:
         board = []
         row = 0
+        prev_line = ''
+        line = ''
 
         while True:
+            prev_line = line
             line = ans.readline()
 
-            if line == '\n':
+            if line == '\n' and prev_line == '\n':
+                # indicate end
+                break
+
+            elif line == '\n':
                 ans_board_list.append(board)
                 row = 0
                 board = []
