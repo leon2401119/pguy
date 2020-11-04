@@ -263,7 +263,7 @@ def pguy(id, hw_week, late, update):
     header = {1:[],
               2:['basic.h','quickSort.h'],
               3:['basic.h','mergeSort.h'],
-              4:['basic.h','mergeInplace.h'],
+              4:['basic.h','mergeSortInplace.h'],
               5:[]
               }
 
