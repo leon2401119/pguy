@@ -449,7 +449,7 @@ def diff_8queen(file1, file2, outfile):
     #             board.append([int(row),int(col)])
 
 
-    with open(file1,'r') as groundtruth:
+    with open(file1,'r',encoding='ascii') as groundtruth:
         board = []
         row = 0
 
@@ -477,7 +477,7 @@ def diff_8queen(file1, file2, outfile):
 
 
     ans_board_list = []
-    with open(file2,'r') as ans:
+    with open(file2,'r',encoding='ascii') as ans:
         board = []
         row = 0
         prev_line = ''
@@ -491,7 +491,7 @@ def diff_8queen(file1, file2, outfile):
                 # indicate end
                 break
 
-            elif line == '\n':
+            elif line == '\n' or line == ' \n':
                 ans_board_list.append(board)
                 row = 0
                 board = []
