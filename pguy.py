@@ -256,22 +256,15 @@ def pguy(id, hw_week, late, update):
 
 
     prog_arg = {
-                2:[(1,100),(2,1000),(3,10000),(4,100000),(5,12345)],
                 3:[(1,100),(2,1000),(3,10000),(4,100000),(5,12345)],
-                4:[(1,100),(2,1000),(3,10000),(4,100000),(5,12345)]
                 }
-    header = {1:[],
-              2:['basic.h','quickSort.h'],
-              3:['basic.h','mergeSort.h'],
-              4:['basic.h','mergeSortInplace.h'],
-              5:[]
-              }
+    header = {}
 
 
     for problem_num in range(1, problem_count + 1):
         ## check existence phase
 
-        if problem_num in [1,5]:
+        if problem_num in [1,2]:
             try:
                 f = open(f'{id}_{problem_num}.cpp', 'r')
             except Exception as e:
@@ -310,8 +303,8 @@ def pguy(id, hw_week, late, update):
                 to_write = ''
                 try:
 
-                    if problem_num in [2,3,4]:
-                        output = subprocess.run([prog,str(prog_arg[problem_num][test_num-1][0]),str(prog_arg[problem_num][test_num-1][1])], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                    if problem_num in [3]:
+                        output = subprocess.run([prog,str(prog_arg[problem_num][test_num-1][0]),str(prog_arg[problem_num][test_num-1][1]),str(prog_arg[problem_num][test_num-1][2]),str(prog_arg[problem_num][test_num-1][3])], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 timeout=TIMEOUT)
                     else:
                         output = subprocess.run([prog], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -336,11 +329,7 @@ def pguy(id, hw_week, late, update):
                 ff.close()
 
 
-            if problem_num != 5:
-                diff(f'{prefix}-{test_num}.out', f'{problem_num}-{test_num}.txt', f'{problem_num}-{test_num}_diff.txt')
-
-            else:
-                diff_8queen(f'{prefix}-{test_num}.out', f'{problem_num}-{test_num}.txt', f'{problem_num}-{test_num}_diff.txt')
+            diff(f'{prefix}-{test_num}.out', f'{problem_num}-{test_num}.txt', f'{problem_num}-{test_num}_diff.txt')
 
 
             if not os.stat(f'{problem_num}-{test_num}_diff.txt').st_size:
@@ -427,113 +416,6 @@ def diff(file1, file2, outfile):
     f1.close()
     f2.close()
     out.close()
-
-
-def diff_8queen(file1, file2, outfile):
-    board_list = []
-    # with open(file1,'r') as groundtruth:
-    #     board = []
-    #     while True:
-    #         line = groundtruth.readline()
-    #
-    #         if line == '\n':
-    #             board_list.append(board)
-    #             board = []
-    #
-    #         elif not len(line):
-    #             board_list.append(board)
-    #             break
-    #
-    #         else:
-    #             row, col = line[:-1].split(" ")
-    #             board.append([int(row),int(col)])
-
-
-    with open(file1,'r',encoding='ascii') as groundtruth:
-        board = []
-        row = 0
-
-        while True:
-            line = groundtruth.readline()
-
-            if line == '\n':
-                board_list.append(board)
-                row = 0
-                board = []
-
-            elif not len(line):
-                break
-
-            else:
-                pos = 0
-                while True:
-                    pos = line.find('Q',pos)
-                    if pos == -1:
-                        break
-                    board.append([row,pos])
-                    pos += 1
-
-                row += 1
-
-
-    ans_board_list = []
-    with open(file2,'r',encoding='ascii') as ans:
-        board = []
-        row = 0
-        prev_line = ''
-        line = ''
-
-        while True:
-            prev_line = line
-            line = ans.readline()
-
-            if line == '\n' and prev_line == '\n':
-                # indicate end
-                break
-
-            elif line == '\n' or line == ' \n':
-                ans_board_list.append(board)
-                row = 0
-                board = []
-
-            elif not len(line):
-                break
-
-            else:
-                pos = 0
-                while True:
-                    pos = line.find('Q',pos)
-                    if pos == -1:
-                        break
-                    board.append([row,pos])
-                    pos += 1
-
-                row += 1
-
-    correct = True
-    residual_ans = 0
-    for board in ans_board_list:
-        if board not in board_list:
-            residual_ans += 1
-            correct = False
-
-    missing_ans = 0
-    for board in board_list:
-        if board not in ans_board_list:
-            missing_ans += 1
-            correct = False
-
-    dupe = 0
-    for i in range(len(ans_board_list)):
-        for j in range(i+1,len(ans_board_list)):
-            if ans_board_list[i] == ans_board_list[j]:
-                dupe += 1
-
-
-
-    with open(outfile,'w') as file:
-        if len(board_list) != len(ans_board_list) or not correct:
-            file.writelines([f'Residual answers : {residual_ans}\n', f'Missing answers : {missing_ans}\n', f'Duplicate answers : {dupe}\n'])
 
 
 def header_file_check(header_file_name):
