@@ -343,7 +343,7 @@ def pguy(id, hw_week, late, update):
                 os.remove(f'{problem_num}-{test_num}.txt')
             else:
                 print(f'Incorrect ans for {problem_num}-{test_num}')
-                os.remove(f'{problem_num}-{test_num}.txt')
+                # os.remove(f'{problem_num}-{test_num}.txt')
 
             test_num += 1
 
@@ -398,6 +398,20 @@ def diff(file1, file2, outfile):
         while len(f2_buff) and (f2_buff[-1] == ' ' or f2_buff[-1] == '\n'):
             f2_buff = f2_buff[:-1]
 
+
+        parse_backspace = True
+        while parse_backspace:
+            parse_backspace = False
+            for i in range(len(f2_buff)):
+                if f2_buff[i] == '\b':
+                    parse_backspace = True
+                    if i!=0:
+                        f2_buff = f2_buff[:i-1]+f2_buff[i+1:]
+                    else:
+                        f2_buff = f2_buff[1:]
+                    break
+
+
         if f1_buff != f2_buff:
             correctness = False
 
@@ -411,6 +425,18 @@ def diff(file1, file2, outfile):
         f2_out += f2_buff
         while len(f2_buff) and (f2_buff[-1] == ' ' or f2_buff[-1] == '\n'):
             f2_buff = f2_buff[:-1]
+
+        parse_backspace = True
+        while parse_backspace:
+            parse_backspace = False
+            for i in range(len(f2_buff)):
+                if f2_buff[i] == '\b':
+                    parse_backspace = True
+                    if i!=0:
+                        f2_buff = f2_buff[:i-1]+f2_buff[i+1:]
+                    else:
+                        f2_buff = f2_buff[1:]
+                    break
 
         if f2_buff != '':
             correctness = False
