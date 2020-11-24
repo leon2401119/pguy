@@ -15,20 +15,20 @@ GSPREAD_READY = True
 GSPREAD_DEPENDENCIES = []
 
 ############ for gspread ###############
-try:
-    import gspread
-except Exception as e:
-    GSPREAD_READY = False
-    GSPREAD_DEPENDENCIES.append('gspread')
-
-try:
-    from oauth2client.service_account import ServiceAccountCredentials
-except Exception as e:
-    GSPREAD_READY = False
-    GSPREAD_DEPENDENCIES.append('oauth2client.service_account')
-
-gss_scopes = ['https://spreadsheets.google.com/feeds']
-spreadsheet_key = '1P11Krwj7CP5zGP4Q9YPmJMGy3WDSJLLcU9SaUMNSPjg'
+# try:
+#     import gspread
+# except Exception as e:
+#     GSPREAD_READY = False
+#     GSPREAD_DEPENDENCIES.append('gspread')
+#
+# try:
+#     from oauth2client.service_account import ServiceAccountCredentials
+# except Exception as e:
+#     GSPREAD_READY = False
+#     GSPREAD_DEPENDENCIES.append('oauth2client.service_account')
+#
+# gss_scopes = ['https://spreadsheets.google.com/feeds']
+# spreadsheet_key = '1P11Krwj7CP5zGP4Q9YPmJMGy3WDSJLLcU9SaUMNSPjg'
 
 
 ########################################
@@ -255,11 +255,9 @@ def pguy(id, hw_week, late, update):
     gspread_row = [id]
 
 
-    prog_arg = {
-                3:[(1000,0.3,100,50),
-                   (100,0.7,1000,126),
-                   (150,0.1,6000,5566)
-                    ]
+    prog_arg = {1:[],
+                2:[],
+                3:[]
                 }
     header = {1:[],
               2:[],
@@ -269,7 +267,7 @@ def pguy(id, hw_week, late, update):
     for problem_num in range(1, problem_count + 1):
         ## check existence phase
 
-        if problem_num in [1,2]:
+        if problem_num in []:
             try:
                 f = open(f'{id}_{problem_num}.cpp', 'r')
             except Exception as e:
@@ -286,7 +284,7 @@ def pguy(id, hw_week, late, update):
 
         ## compile phase
 
-        os.system(f'g++ {id}_{problem_num}.cpp -w -o {problem_num} 2>{problem_num}_err.txt')
+        os.system(f'g++ {id}_{problem_num}.cpp calc.cpp -w -o {problem_num} 2>{problem_num}_err.txt')
         if os.stat(os.path.join('.', f'{problem_num}_err.txt')).st_size:
             # compile error
             print(f'Score for problem {problem_num} : 0 (Compile Error)')
@@ -308,7 +306,7 @@ def pguy(id, hw_week, late, update):
                 to_write = ''
                 try:
 
-                    if problem_num in [3]:
+                    if problem_num in []:
                         output = subprocess.run([prog,str(prog_arg[problem_num][test_num-1][0]),str(prog_arg[problem_num][test_num-1][1]),str(prog_arg[problem_num][test_num-1][2]),str(prog_arg[problem_num][test_num-1][3])], stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 timeout=TIMEOUT)
                     else:
