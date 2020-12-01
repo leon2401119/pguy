@@ -284,7 +284,7 @@ def pguy(id, hw_week, late, update):
 
         ## compile phase
 
-        os.system(f'g++ {id}_{problem_num}.cpp calc.cpp -w -o {problem_num} 2>{problem_num}_err.txt')
+        os.system(f'g++ {id}_{problem_num}.cpp account.cpp -w -o {problem_num} 2>{problem_num}_err.txt')
         if os.stat(os.path.join('.', f'{problem_num}_err.txt')).st_size:
             # compile error
             print(f'Score for problem {problem_num} : 0 (Compile Error)')
@@ -410,7 +410,23 @@ def diff(file1, file2, outfile):
                     break
 
 
-        if f1_buff != f2_buff:
+        f1_line = f1_buff.split(' ')
+        f2_line = f2_buff.split(' ')
+
+        try:
+            while True:
+                f1_line.remove('')
+        except Exception as e:
+            pass
+
+        try:
+            while True:
+                f2_line.remove('')
+        except Exception as e:
+            pass
+
+
+        if f1_line != f2_line:
             correctness = False
 
         f1_buff = f1.readline()
