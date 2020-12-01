@@ -257,11 +257,18 @@ def pguy(id, hw_week, late, update):
 
     prog_arg = {1:[],
                 2:[],
-                3:[]
+                3:[],
+                4:[],
+                5:[],
+                6:[]
                 }
     header = {1:[],
               2:[],
-              3:[]}
+              3:[],
+              4:[],
+              5:[],
+              6:[]
+              }
 
 
     for problem_num in range(1, problem_count + 1):
