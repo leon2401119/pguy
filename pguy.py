@@ -291,7 +291,7 @@ def pguy(id, hw_week, late, update):
 
         ## compile phase
 
-        os.system(f'g++ {id}_{problem_num}.cpp account.cpp -w -o {problem_num} 2>{problem_num}_err.txt')
+        os.system(f'g++ {id}_{problem_num}.cpp -w -o {problem_num} 2>{problem_num}_err.txt')
         if os.stat(os.path.join('.', f'{problem_num}_err.txt')).st_size:
             # compile error
             print(f'Score for problem {problem_num} : 0 (Compile Error)')
