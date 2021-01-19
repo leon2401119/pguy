@@ -271,27 +271,30 @@ def pguy(id, hw_week, late, update):
               }
 
 
+    syspause_cleaner('main.cpp')
+    syspause_cleaner('LargeNumber.cpp')
+    syspause_cleaner('Expr.cpp')
     for problem_num in range(1, problem_count + 1):
         ## check existence phase
 
-        if problem_num in []:
-            try:
-                f = open(f'{id}_{problem_num}.cpp', 'r')
-            except Exception as e:
-                print(f'Score for problem {problem_num} : 0 ({id}_{problem_num}.cpp not found)')
-                gspread_row.append('0')
-                continue
+        # if problem_num in [1,2,3,4,5,6]:
+        #     try:
+        #         f = open(f'{id}_{problem_num}.cpp', 'r')
+        #     except Exception as e:
+        #         print(f'Score for problem {problem_num} : 0 ({id}_{problem_num}.cpp not found)')
+        #         gspread_row.append('0')
+        #         continue
 
-            f.close()
-            syspause_cleaner(f'{id}_{problem_num}.cpp')
+        #     f.close()
+        #     syspause_cleaner(f'{id}_{problem_num}.cpp')
 
-        else:
-            file_path = os.path.join('.', IODIR, f'{problem_num}.cpp')
-            os.system(f'cp {file_path} {id}_{problem_num}.cpp')
+        # else:
+        #     file_path = os.path.join('.', IODIR, f'{problem_num}.cpp')
+        #     os.system(f'cp {file_path} {id}_{problem_num}.cpp')
 
         ## compile phase
 
-        os.system(f'g++ {id}_{problem_num}.cpp -w -o {problem_num} 2>{problem_num}_err.txt')
+        os.system(f'g++ main.cpp -w -o {problem_num} 2>{problem_num}_err.txt')
         if os.stat(os.path.join('.', f'{problem_num}_err.txt')).st_size:
             # compile error
             print(f'Score for problem {problem_num} : 0 (Compile Error)')
